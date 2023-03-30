@@ -124,6 +124,7 @@ def load_config():
             except:
                 config[name] = value
 
+
     logger.info("[INIT] load config: {}".format(config))
 
 
