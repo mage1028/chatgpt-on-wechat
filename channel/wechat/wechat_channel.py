@@ -209,12 +209,14 @@ class WechatChannel(Channel):
         if ctype == ContextType.TEXT:
             if context["isgroup"]: # 群聊
                 # 校验关键字
+                print("flag1")
                 match_prefix = check_prefix(content, conf().get('group_chat_prefix'))
                 match_contain = check_contain(content, conf().get('group_chat_keyword'))
                 if match_prefix is not None or match_contain is not None:
                     # 判断如果匹配到自定义前缀，则返回过滤掉前缀+空格后的内容，用于实现类似自定义+前缀触发生成AI图片的功能
                     if match_prefix:
                         content = content.replace(match_prefix, '', 1).strip()
+                        print("flag2")
                 
                 elif context["origin_ctype"] == ContextType.VOICE:
                     logger.info("[WX]receive group voice, checkprefix didn't match")
