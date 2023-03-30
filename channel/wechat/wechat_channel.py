@@ -218,8 +218,6 @@ class WechatChannel(Channel):
                 elif context["origin_ctype"] == ContextType.VOICE:
                     logger.info("[WX]receive group voice, checkprefix didn't match")
                     return None
-                else:
-                    return None
             else: # 单聊
                 match_prefix = check_prefix(content, conf().get('single_chat_prefix'))  
                 if match_prefix: # 判断如果匹配到自定义前缀，则返回过滤掉前缀+空格后的内容
