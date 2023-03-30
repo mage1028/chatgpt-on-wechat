@@ -215,6 +215,8 @@ class WechatChannel(Channel):
                     # 判断如果匹配到自定义前缀，则返回过滤掉前缀+空格后的内容，用于实现类似自定义+前缀触发生成AI图片的功能
                     if match_prefix:
                         content = content.replace(match_prefix, '', 1).strip()
+                    else:
+                        return None
                 elif context["origin_ctype"] == ContextType.VOICE:
                     logger.info("[WX]receive group voice, checkprefix didn't match")
                     return None

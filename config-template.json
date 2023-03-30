@@ -7,7 +7,7 @@
   "single_chat_reply_prefix": "[bot] ",
   "group_chat_prefix": ["@bot", "@看啥看", "bot"],
   "group_name_white_list": ["ALL_GROUP"],
-  "group_chat_in_one_session": ["ChatGPT测试群"],
+  "group_chat_in_one_session": ["ALL_GROUP"],
   "image_create_prefix": ["画", "看", "找"],
   "speech_recognition": false,
   "group_speech_recognition": false,
