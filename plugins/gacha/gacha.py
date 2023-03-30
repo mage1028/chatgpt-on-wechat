@@ -91,9 +91,9 @@ class Gacha(Plugin):
                 pool.remove(x)
                 self.initMap[x] -= 1
                 if x in self.reward_Map:
-                    self.reward_Map+=1
+                    self.reward_Map[x]+=1
                 else:
-                    self.reward_Map=1
+                    self.reward_Map[x]=1
 
             reply.content = "抽奖结束\n" + "\n".join(ret) + self.devider + "剩余奖品:\n" +self.reward()+self.devider + "您抽中的奖品："+self.my_reward()
             e_context['reply'] = reply
