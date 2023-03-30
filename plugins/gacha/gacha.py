@@ -68,7 +68,7 @@ class Gacha(Plugin):
             reply.type = ReplyType.TEXT
             for v in clist[1].split("\n"):
                 key = v.split(":")[0]
-                value = v.split(":")[1]
+                value = int(v.split(":")[1])
                 if key in self.initMap:
                     self.initMap[key]+=value
                 else:
@@ -84,7 +84,7 @@ class Gacha(Plugin):
             ret=[]
             for k in self.initMap:
                 v = self.initMap[k]
-                pool+=([k]*v)
+                pool+=[k]* int(v)
             for _ in range(10):
                 x = random.choice(pool)
                 ret.append(f"恭喜您，抽中 {x}")
