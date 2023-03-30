@@ -84,7 +84,7 @@ class Gacha(Plugin):
             ret=[]
             for k in self.initMap:
                 v = self.initMap[k]
-                pool.append([k]*v)
+                pool+=([k]*v)
             for _ in range(10):
                 x = random.choice(pool)
                 ret.append(f"恭喜您，抽中 {x}")
