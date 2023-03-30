@@ -156,7 +156,8 @@ class WechatChannel(Channel):
         if len(context_special_list) == 2:
             content = context_special_list[1]
         elif len(content_list) == 2:
-            content = content_list[1]
+            pass
+            # content = content_list[1]
         if "」\n- - - - - - - - - - - - - - -" in content:
             logger.debug("[WX]reference query skipped")
             return ""
