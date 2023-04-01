@@ -11,14 +11,20 @@ import requests
 from channel import channel_factory
 import copy
 
-@plugins.register(name="Gacha", desc="一个可以模拟抽卡的插件", version="0.1", author="mage", desire_priority= 10)
+
+@plugins.register(name="Gacha",
+                  desc="一个可以模拟抽卡的插件",
+                  version="0.1",
+                  author="mage",
+                  desire_priority=10)
 class Gacha(Plugin):
+
     def __init__(self):
         super().__init__()
         self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
         self.initMap = {}
         self.reward_Map = {}
-        self.devider="\n---💗---\n"
+        self.devider = "\n---💗---\n"
         logger.info("[Hello] inited")
 
     def reward(self):
@@ -45,25 +51,24 @@ class Gacha(Plugin):
         if clist[0] == "$trip":
             reply = Reply()
             reply.type = ReplyType.TEXT
-            reply.content="正在根据您的要求 生成旅游攻略 请稍后"
-            e_context['reply']= reply
+            reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
+            e_context['reply'] = reply
             e_context.action = EventAction.BREAK
-            new_content=copy.deepcopy(e_context)
+            new_context = copy.deepcopy(e_context)
             new_context['666']
             channel_factory.create_channel('wx').handle(new_context)
             return
 
-
-        if clist[0]== "$clear":
+        if clist[0] == "$clear":
             reply = Reply()
             reply.type = ReplyType.TEXT
             self.reward_Map = {}
             self.initMap = {}
-            reply.content="清空奖品奖池成功"
-            e_context['reply']= reply
-            e_context.action = EventAction.BREAK_PASS # 事件结束，并跳过处理context的默认逻辑
+            reply.content = "清空奖品奖池成功"
+            e_context['reply'] = reply
+            e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
 
-        if clist[0]== "$set":
+        if clist[0] == "$set":
             reply = Reply()
             reply.type = ReplyType.TEXT
             for v in clist[1].split("\n"):
@@ -71,47 +76,47 @@ class Gacha(Plugin):
                 value = v.split(":")[1]
                 self.reward_Map = {}
                 self.reward_Map[key] = value
-            reply.content="更新我的奖品 成功，当前奖品: \n " + self.my_reward()()
-            e_context['reply']= reply
-            e_context.action = EventAction.BREAK_PASS # 事件结束，并跳过处理context的默认逻辑
+            reply.content = "更新我的奖品 成功，当前奖品: \n " + self.my_reward()()
+            e_context['reply'] = reply
+            e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
 
-
-        if clist[0]== "$add":
+        if clist[0] == "$add":
             reply = Reply()
             reply.type = ReplyType.TEXT
             for v in clist[1].split("\n"):
                 key = v.split(":")[0]
                 value = int(v.split(":")[1])
                 if key in self.initMap:
-                    self.initMap[key]+=value
+                    self.initMap[key] += value
                 else:
                     self.initMap[key] = value
-            reply.content="更新奖池 成功，当前奖品: \n " + self.reward()
-            e_context['reply']= reply
-            e_context.action = EventAction.BREAK_PASS # 事件结束，并跳过处理context的默认逻辑
+            reply.content = "更新奖池 成功，当前奖品: \n " + self.reward()
+            e_context['reply'] = reply
+            e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
 
         if content == "十连抽":
             reply = Reply()
             reply.type = ReplyType.TEXT
-            pool=[]
-            ret=[]
+            pool = []
+            ret = []
             for k in self.initMap:
                 v = self.initMap[k]
-                pool+=[k]* int(v)
+                pool += [k] * int(v)
             for _ in range(10):
                 x = random.choice(pool)
                 ret.append(f"恭喜您，抽中 {x}")
                 pool.remove(x)
                 self.initMap[x] -= 1
                 if x in self.reward_Map:
-                    self.reward_Map[x]+=1
+                    self.reward_Map[x] += 1
                 else:
-                    self.reward_Map[x]=1
+                    self.reward_Map[x] = 1
 
-            reply.content = "抽奖结束\n" + "\n".join(ret) + self.devider + "剩余奖品:\n" +self.reward()+self.devider + "您抽中的奖品："+self.my_reward()
+            reply.content = "抽奖结束\n" + "\n".join(
+                ret) + self.devider + "剩余奖品:\n" + self.reward(
+                ) + self.devider + "您抽中的奖品：" + self.my_reward()
             e_context['reply'] = reply
             e_context.action = EventAction.BREAK_PASS
-
 
     def get_help_text(self, **kwargs):
         help_text = "抽奖模拟器~ 0.1版本\n"
