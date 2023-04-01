@@ -58,7 +58,6 @@ def handler_group_voice(msg):
 
 
 
-@singleton(cls)
 class WechatChannel(Channel):
     _instance = None
 
