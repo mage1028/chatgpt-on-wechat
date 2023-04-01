@@ -1,5 +1,4 @@
 # encoding:utf-8
-
 """
 wechat channel
 """
@@ -30,7 +29,8 @@ thread_pool = ThreadPoolExecutor(max_workers=8)
 def thread_pool_callback(worker):
     worker_exception = worker.exception()
     if worker_exception:
-        logger.exception("Worker return exception: {}".format(worker_exception))
+        logger.exception(
+            "Worker return exception: {}".format(worker_exception))
 
 
 @itchat.msg_register(TEXT)
@@ -38,24 +38,39 @@ def handler_single_msg(msg):
     WechatChannel().handle_text(msg)
     return None
 
+
 @itchat.msg_register(TEXT, isGroupChat=True)
 def handler_group_msg(msg):
     WechatChannel().handle_group(msg)
     return None
 
+
 @itchat.msg_register(VOICE)
 def handler_single_voice(msg):
     WechatChannel().handle_voice(msg)
     return None
-    
+
+
 @itchat.msg_register(VOICE, isGroupChat=True)
 def handler_group_voice(msg):
     WechatChannel().handle_group_voice(msg)
     return None
 
 
+def singleton(cls):
+    instances = {}
 
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+
+    return get_instance
+
+
+@singleton(cls)
 class WechatChannel(Channel):
+
     def __init__(self):
         self.userName = None
         self.nickName = None
@@ -69,7 +84,8 @@ class WechatChannel(Channel):
             itchat.auto_login(enableCmdQR=2, hotReload=hotReload)
         except Exception as e:
             if hotReload:
-                logger.error("Hot reload failed, try to login without hot reload")
+                logger.error(
+                    "Hot reload failed, try to login without hot reload")
                 itchat.logout()
                 os.remove("itchat.pkl")
                 itchat.auto_login(enableCmdQR=2, hotReload=hotReload)
@@ -77,7 +93,8 @@ class WechatChannel(Channel):
                 raise e
         self.userName = itchat.instance.storageClass.userName
         self.nickName = itchat.instance.storageClass.nickName
-        logger.info("Wechat login success, username: {}, nickname: {}".format(self.userName, self.nickName))
+        logger.info("Wechat login success, username: {}, nickname: {}".format(
+            self.userName, self.nickName))
         # start message listener
         itchat.run()
 
@@ -100,7 +117,7 @@ class WechatChannel(Channel):
         to_user_id = msg['ToUserName']
         from_user_id = msg['FromUserName']
         try:
-            other_user_id = msg['User']['UserName']     # 对手方id
+            other_user_id = msg['User']['UserName']  # 对手方id
         except Exception as e:
             logger.warn("[WX]get other_user_id failed: " + str(e))
             if from_user_id == self.userName:
@@ -108,43 +125,60 @@ class WechatChannel(Channel):
             else:
                 other_user_id = from_user_id
         if from_user_id == other_user_id:
-            context = self._compose_context(ContextType.VOICE, msg['FileName'], isgroup=False, msg=msg, receiver=other_user_id, session_id=other_user_id)
+            context = self._compose_context(ContextType.VOICE,
+                                            msg['FileName'],
+                                            isgroup=False,
+                                            msg=msg,
+                                            receiver=other_user_id,
+                                            session_id=other_user_id)
             if context:
-                thread_pool.submit(self.handle, context).add_done_callback(thread_pool_callback)
+                thread_pool.submit(
+                    self.handle,
+                    context).add_done_callback(thread_pool_callback)
 
     @time_checker
     def handle_text(self, msg):
-        logger.debug("[WX]receive text msg: " + json.dumps(msg, ensure_ascii=False))
+        logger.debug("[WX]receive text msg: " +
+                     json.dumps(msg, ensure_ascii=False))
         content = msg['Text']
         from_user_id = msg['FromUserName']
-        to_user_id = msg['ToUserName']              # 接收人id
+        to_user_id = msg['ToUserName']  # 接收人id
         try:
-            other_user_id = msg['User']['UserName']     # 对手方id
+            other_user_id = msg['User']['UserName']  # 对手方id
         except Exception as e:
             logger.warn("[WX]get other_user_id failed: " + str(e))
             if from_user_id == self.userName:
                 other_user_id = to_user_id
             else:
                 other_user_id = from_user_id
-        create_time = msg['CreateTime']             # 消息时间
-        if conf().get('hot_reload') == True and int(create_time) < int(time.time()) - 60:  # 跳过1分钟前的历史消息
+        create_time = msg['CreateTime']  # 消息时间
+        if conf().get('hot_reload') == True and int(create_time) < int(
+                time.time()) - 60:  # 跳过1分钟前的历史消息
             logger.debug("[WX]history message skipped")
             return
         if "」\n- - - - - - - - - - - - - - -" in content:
             logger.debug("[WX]reference query skipped")
             return
-        
-        context = self._compose_context(ContextType.TEXT, content, isgroup=False, msg=msg, receiver=other_user_id, session_id=other_user_id)
+
+        context = self._compose_context(ContextType.TEXT,
+                                        content,
+                                        isgroup=False,
+                                        msg=msg,
+                                        receiver=other_user_id,
+                                        session_id=other_user_id)
         if context:
-            thread_pool.submit(self.handle, context).add_done_callback(thread_pool_callback)
+            thread_pool.submit(self.handle,
+                               context).add_done_callback(thread_pool_callback)
 
     @time_checker
     def handle_group(self, msg):
-        logger.debug("[WX]receive group msg: " + json.dumps(msg, ensure_ascii=False))
+        logger.debug("[WX]receive group msg: " +
+                     json.dumps(msg, ensure_ascii=False))
         group_name = msg['User'].get('NickName', None)
         group_id = msg['User'].get('UserName', None)
-        create_time = msg['CreateTime']             # 消息时间
-        if conf().get('hot_reload') == True and int(create_time) < int(time.time()) - 60:  # 跳过1分钟前的历史消息
+        create_time = msg['CreateTime']  # 消息时间
+        if conf().get('hot_reload') == True and int(create_time) < int(
+                time.time()) - 60:  # 跳过1分钟前的历史消息
             logger.debug("[WX]history group message skipped")
             return
         if not group_name:
@@ -164,16 +198,33 @@ class WechatChannel(Channel):
 
         config = conf()
         group_name_white_list = config.get('group_name_white_list', [])
-        group_name_keyword_white_list = config.get('group_name_keyword_white_list', [])
+        group_name_keyword_white_list = config.get(
+            'group_name_keyword_white_list', [])
 
-        if any([group_name in group_name_white_list, 'ALL_GROUP' in group_name_white_list, check_contain(group_name, group_name_keyword_white_list), msg['IsAt'] and not config.get("group_at_off", False)]):
-            group_chat_in_one_session = conf().get('group_chat_in_one_session', [])
+        if any([
+                group_name in group_name_white_list, 'ALL_GROUP'
+                in group_name_white_list,
+                check_contain(group_name, group_name_keyword_white_list),
+                msg['IsAt'] and not config.get("group_at_off", False)
+        ]):
+            group_chat_in_one_session = conf().get('group_chat_in_one_session',
+                                                   [])
             session_id = msg['ActualUserName']
-            if any([group_name in group_chat_in_one_session, 'ALL_GROUP' in group_chat_in_one_session]):
+            if any([
+                    group_name in group_chat_in_one_session, 'ALL_GROUP'
+                    in group_chat_in_one_session
+            ]):
                 session_id = group_id
-            context = self._compose_context(ContextType.TEXT, content, isgroup=True, msg=msg, receiver=group_id, session_id=session_id)
+            context = self._compose_context(ContextType.TEXT,
+                                            content,
+                                            isgroup=True,
+                                            msg=msg,
+                                            receiver=group_id,
+                                            session_id=session_id)
             if context:
-                thread_pool.submit(self.handle, context).add_done_callback(thread_pool_callback)
+                thread_pool.submit(
+                    self.handle,
+                    context).add_done_callback(thread_pool_callback)
 
     def handle_group_voice(self, msg):
         if conf().get('group_speech_recognition', False) != True:
@@ -181,25 +232,42 @@ class WechatChannel(Channel):
         logger.debug("[WX]receive voice for group msg: " + msg['FileName'])
         group_name = msg['User'].get('NickName', None)
         group_id = msg['User'].get('UserName', None)
-        create_time = msg['CreateTime']             # 消息时间
-        if conf().get('hot_reload') == True and int(create_time) < int(time.time()) - 60:    #跳过1分钟前的历史消息
+        create_time = msg['CreateTime']  # 消息时间
+        if conf().get('hot_reload') == True and int(create_time) < int(
+                time.time()) - 60:  #跳过1分钟前的历史消息
             logger.debug("[WX]history group voice skipped")
             return
         # 验证群名
         if not group_name:
             return ""
-        
+
         config = conf()
         group_name_white_list = config.get('group_name_white_list', [])
-        group_name_keyword_white_list = config.get('group_name_keyword_white_list', [])
-        if any([group_name in group_name_white_list, 'ALL_GROUP' in group_name_white_list, check_contain(group_name, group_name_keyword_white_list)]):
-            group_chat_in_one_session = conf().get('group_chat_in_one_session', [])
-            session_id =msg['ActualUserName']
-            if any([group_name in group_chat_in_one_session, 'ALL_GROUP' in group_chat_in_one_session]):
+        group_name_keyword_white_list = config.get(
+            'group_name_keyword_white_list', [])
+        if any([
+                group_name in group_name_white_list, 'ALL_GROUP'
+                in group_name_white_list,
+                check_contain(group_name, group_name_keyword_white_list)
+        ]):
+            group_chat_in_one_session = conf().get('group_chat_in_one_session',
+                                                   [])
+            session_id = msg['ActualUserName']
+            if any([
+                    group_name in group_chat_in_one_session, 'ALL_GROUP'
+                    in group_chat_in_one_session
+            ]):
                 session_id = group_id
-            context = self._compose_context(ContextType.VOICE, msg['FileName'], isgroup=True, msg=msg, receiver=group_id, session_id=session_id)
+            context = self._compose_context(ContextType.VOICE,
+                                            msg['FileName'],
+                                            isgroup=True,
+                                            msg=msg,
+                                            receiver=group_id,
+                                            session_id=session_id)
             if context:
-                thread_pool.submit(self.handle, context).add_done_callback(thread_pool_callback)
+                thread_pool.submit(
+                    self.handle,
+                    context).add_done_callback(thread_pool_callback)
 
     def _compose_context(self, ctype: ContextType, content, **kwargs):
         context = Context(ctype, content)
@@ -208,31 +276,38 @@ class WechatChannel(Channel):
             context['origin_ctype'] = ctype
 
         if ctype == ContextType.TEXT:
-            if context["isgroup"]: # 群聊
+            if context["isgroup"]:  # 群聊
                 # 校验关键字
-                match_prefix = check_prefix(content, conf().get('group_chat_prefix'))
-                print("flag1",content,conf().get('group_chat_prefix'),match_prefix)
-                match_contain = check_contain(content, conf().get('group_chat_keyword'))
+                match_prefix = check_prefix(content,
+                                            conf().get('group_chat_prefix'))
+                print("flag1", content,
+                      conf().get('group_chat_prefix'), match_prefix)
+                match_contain = check_contain(content,
+                                              conf().get('group_chat_keyword'))
                 if match_prefix is not None:
                     # 判断如果匹配到自定义前缀，则返回过滤掉前缀+空格后的内容，用于实现类似自定义+前缀触发生成AI图片的功能
                     if match_prefix:
                         print("flag2")
                         content = content.replace(match_prefix, '', 1).strip()
-                
+
                 elif context["origin_ctype"] == ContextType.VOICE:
-                    logger.info("[WX]receive group voice, checkprefix didn't match")
+                    logger.info(
+                        "[WX]receive group voice, checkprefix didn't match")
                     return None
                 else:
                     return None
-            else: # 单聊
-                match_prefix = check_prefix(content, conf().get('single_chat_prefix'))  
-                if match_prefix: # 判断如果匹配到自定义前缀，则返回过滤掉前缀+空格后的内容
+            else:  # 单聊
+                match_prefix = check_prefix(content,
+                                            conf().get('single_chat_prefix'))
+                if match_prefix:  # 判断如果匹配到自定义前缀，则返回过滤掉前缀+空格后的内容
                     content = content.replace(match_prefix, '', 1).strip()
-                elif context["origin_ctype"] == ContextType.VOICE: # 如果源消息是私聊的语音消息，不匹配前缀，直接返回
+                elif context[
+                        "origin_ctype"] == ContextType.VOICE:  # 如果源消息是私聊的语音消息，不匹配前缀，直接返回
                     pass
                 else:
-                    return None                                       
-            img_match_prefix = check_prefix(content, conf().get('image_create_prefix'))
+                    return None
+            img_match_prefix = check_prefix(content,
+                                            conf().get('image_create_prefix'))
             if img_match_prefix:
                 content = content.replace(img_match_prefix, '', 1).strip()
                 context.type = ContextType.IMAGE_CREATE
@@ -240,23 +315,27 @@ class WechatChannel(Channel):
                 context.type = ContextType.TEXT
             context.content = content
         elif context.type == ContextType.VOICE:
-            if 'desire_rtype' not in context and conf().get('voice_reply_voice'):
+            if 'desire_rtype' not in context and conf().get(
+                    'voice_reply_voice'):
                 context['desire_rtype'] = ReplyType.VOICE
         return context
-    
+
     # 统一的发送函数，每个Channel自行实现，根据reply的type字段发送不同类型的消息
-    def send(self, reply: Reply, receiver, retry_cnt = 0):
+    def send(self, reply: Reply, receiver, retry_cnt=0):
         try:
             if reply.type == ReplyType.TEXT:
                 itchat.send(reply.content, toUserName=receiver)
-                logger.info('[WX] sendMsg={}, receiver={}'.format(reply, receiver))
+                logger.info('[WX] sendMsg={}, receiver={}'.format(
+                    reply, receiver))
             elif reply.type == ReplyType.ERROR or reply.type == ReplyType.INFO:
                 itchat.send(reply.content, toUserName=receiver)
-                logger.info('[WX] sendMsg={}, receiver={}'.format(reply, receiver))
+                logger.info('[WX] sendMsg={}, receiver={}'.format(
+                    reply, receiver))
             elif reply.type == ReplyType.VOICE:
                 itchat.send_file(reply.content, toUserName=receiver)
-                logger.info('[WX] sendFile={}, receiver={}'.format(reply.content, receiver))
-            elif reply.type == ReplyType.IMAGE_URL: # 从网络下载图片
+                logger.info('[WX] sendFile={}, receiver={}'.format(
+                    reply.content, receiver))
+            elif reply.type == ReplyType.IMAGE_URL:  # 从网络下载图片
                 img_url = reply.content
                 pic_res = requests.get(img_url, stream=True)
                 image_storage = io.BytesIO()
@@ -264,16 +343,18 @@ class WechatChannel(Channel):
                     image_storage.write(block)
                 image_storage.seek(0)
                 itchat.send_image(image_storage, toUserName=receiver)
-                logger.info('[WX] sendImage url={}, receiver={}'.format(img_url,receiver))
-            elif reply.type == ReplyType.IMAGE: # 从文件读取图片
+                logger.info('[WX] sendImage url={}, receiver={}'.format(
+                    img_url, receiver))
+            elif reply.type == ReplyType.IMAGE:  # 从文件读取图片
                 image_storage = reply.content
                 image_storage.seek(0)
                 itchat.send_image(image_storage, toUserName=receiver)
                 logger.info('[WX] sendImage, receiver={}'.format(receiver))
         except Exception as e:
-            logger.error('[WX] sendMsg error: {}, receiver={}'.format(e, receiver))
+            logger.error('[WX] sendMsg error: {}, receiver={}'.format(
+                e, receiver))
             if retry_cnt < 2:
-                time.sleep(3+3*retry_cnt)
+                time.sleep(3 + 3 * retry_cnt)
                 self.send(reply, receiver, retry_cnt + 1)
 
     # 处理消息 TODO: 如果wechaty解耦，此处逻辑可以放置到父类
@@ -291,12 +372,19 @@ class WechatChannel(Channel):
         # reply的发送步骤
         self._send_reply(context, reply)
 
-    def _generate_reply(self, context: Context, reply: Reply = Reply()) -> Reply:
-        e_context = PluginManager().emit_event(EventContext(Event.ON_HANDLE_CONTEXT, {
-            'channel': self, 'context': context, 'reply': reply}))
+    def _generate_reply(self, context: Context,
+                        reply: Reply = Reply()) -> Reply:
+        e_context = PluginManager().emit_event(
+            EventContext(Event.ON_HANDLE_CONTEXT, {
+                'channel': self,
+                'context': context,
+                'reply': reply
+            }))
         reply = e_context['reply']
         if not e_context.is_pass():
-            logger.debug('[WX] ready to handle context: type={}, content={}'.format(context.type, context.content))
+            logger.debug(
+                '[WX] ready to handle context: type={}, content={}'.format(
+                    context.type, context.content))
             if context.type == ContextType.TEXT or context.type == ContextType.IMAGE_CREATE:  # 文字和图片消息
                 reply = super().build_reply_content(context.content, context)
             elif context.type == ContextType.VOICE:  # 语音消息
@@ -308,7 +396,8 @@ class WechatChannel(Channel):
                 try:
                     mp3_to_wav(mp3_path=mp3_path, wav_path=wav_path)
                 except Exception as e:  # 转换失败，直接使用mp3，对于某些api，mp3也可以识别
-                    logger.warning("[WX]mp3 to wav error, use mp3 path. " + str(e))
+                    logger.warning("[WX]mp3 to wav error, use mp3 path. " +
+                                   str(e))
                     wav_path = mp3_path
                 # 语音识别
                 reply = super().build_voice_to_text(wav_path)
@@ -325,14 +414,19 @@ class WechatChannel(Channel):
                     if new_context:
                         reply = self._generate_reply(new_context)
             else:
-                logger.error('[WX] unknown context type: {}'.format(context.type))
+                logger.error('[WX] unknown context type: {}'.format(
+                    context.type))
                 return
         return reply
 
     def _decorate_reply(self, context: Context, reply: Reply) -> Reply:
         if reply and reply.type:
-            e_context = PluginManager().emit_event(EventContext(Event.ON_DECORATE_REPLY, {
-                'channel': self, 'context': context, 'reply': reply}))
+            e_context = PluginManager().emit_event(
+                EventContext(Event.ON_DECORATE_REPLY, {
+                    'channel': self,
+                    'context': context,
+                    'reply': reply
+                }))
             reply = e_context['reply']
             desire_rtype = context.get('desire_rtype')
             if not e_context.is_pass() and reply and reply.type:
@@ -342,29 +436,42 @@ class WechatChannel(Channel):
                         reply = super().build_text_to_voice(reply.content)
                         return self._decorate_reply(context, reply)
                     if context['isgroup']:
-                        reply_text = '@' +  context['msg']['ActualNickName'] + ' ' + reply_text.strip()
-                        reply_text = conf().get("group_chat_reply_prefix", "")+reply_text
+                        reply_text = '@' + context['msg'][
+                            'ActualNickName'] + ' ' + reply_text.strip()
+                        reply_text = conf().get("group_chat_reply_prefix",
+                                                "") + reply_text
                     else:
-                        reply_text = conf().get("single_chat_reply_prefix", "")+reply_text
+                        reply_text = conf().get("single_chat_reply_prefix",
+                                                "") + reply_text
                     reply.content = reply_text
                 elif reply.type == ReplyType.ERROR or reply.type == ReplyType.INFO:
-                    reply.content = str(reply.type)+":\n" + reply.content
+                    reply.content = str(reply.type) + ":\n" + reply.content
                 elif reply.type == ReplyType.IMAGE_URL or reply.type == ReplyType.VOICE or reply.type == ReplyType.IMAGE:
                     pass
                 else:
-                    logger.error('[WX] unknown reply type: {}'.format(reply.type))
+                    logger.error('[WX] unknown reply type: {}'.format(
+                        reply.type))
                     return
-            if desire_rtype and desire_rtype != reply.type and reply.type not in [ReplyType.ERROR, ReplyType.INFO]:
-                logger.warning('[WX] desire_rtype: {}, but reply type: {}'.format(context.get('desire_rtype'), reply.type))
+            if desire_rtype and desire_rtype != reply.type and reply.type not in [
+                    ReplyType.ERROR, ReplyType.INFO
+            ]:
+                logger.warning(
+                    '[WX] desire_rtype: {}, but reply type: {}'.format(
+                        context.get('desire_rtype'), reply.type))
             return reply
 
     def _send_reply(self, context: Context, reply: Reply):
         if reply and reply.type:
-            e_context = PluginManager().emit_event(EventContext(Event.ON_SEND_REPLY, {
-                'channel': self, 'context': context, 'reply': reply}))
+            e_context = PluginManager().emit_event(
+                EventContext(Event.ON_SEND_REPLY, {
+                    'channel': self,
+                    'context': context,
+                    'reply': reply
+                }))
             reply = e_context['reply']
             if not e_context.is_pass() and reply and reply.type:
-                logger.debug('[WX] ready to send reply: {} to {}'.format(reply, context['receiver']))
+                logger.debug('[WX] ready to send reply: {} to {}'.format(
+                    reply, context['receiver']))
                 self.send(reply, context['receiver'])
 
 
@@ -373,6 +480,7 @@ def check_prefix(content, prefix_list):
         if content.startswith(prefix):
             return prefix
     return None
+
 
 def check_contain(content, keyword_list):
     if not keyword_list:

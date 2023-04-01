@@ -7,7 +7,9 @@ from bridge.context import ContextType
 from bridge.reply import Reply, ReplyType
 from common.log import logger
 from plugins import *
-
+import requests
+from channel import channel_factory
+import copy
 
 @plugins.register(name="Gacha", desc="一个可以模拟抽卡的插件", version="0.1", author="mage", desire_priority= 10)
 class Gacha(Plugin):
@@ -18,7 +20,7 @@ class Gacha(Plugin):
         self.reward_Map = {}
         self.devider="\n---💗---\n"
         logger.info("[Hello] inited")
-    
+
     def reward(self):
         list = []
         for k in self.initMap:
@@ -35,10 +37,21 @@ class Gacha(Plugin):
 
         if e_context['context'].type != ContextType.TEXT:
             return
-        
+
         content = e_context['context'].content
         logger.debug("[Hello] on_handle_context. content: %s" % content)
         clist = e_context['context'].content.split(maxsplit=1)
+
+        if clist[0] == "$trip":
+            reply = Reply()
+            reply.type = ReplyType.TEXT
+            reply.content="正在根据您的要求 生成旅游攻略 请稍后"
+            e_context['reply']= reply
+            e_context.action = EventAction.BREAK
+            new_content=copy.deepcopy(e_context)
+            new_context['666']
+            channel_factory.create_channel('wx').handle(new_context)
+            return
 
 
         if clist[0]== "$clear":
@@ -49,7 +62,7 @@ class Gacha(Plugin):
             reply.content="清空奖品奖池成功"
             e_context['reply']= reply
             e_context.action = EventAction.BREAK_PASS # 事件结束，并跳过处理context的默认逻辑
-        
+
         if clist[0]== "$set":
             reply = Reply()
             reply.type = ReplyType.TEXT
