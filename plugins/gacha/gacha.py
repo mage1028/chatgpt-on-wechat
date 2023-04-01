@@ -53,7 +53,7 @@ class Gacha(Plugin):
         if clist[0]== "$set":
             reply = Reply()
             reply.type = ReplyType.TEXT
-            for v in clist[1]:
+            for v in clist[1].split("\n"):
                 key = v.split(":")[0]
                 value = v.split(":")[1]
                 self.reward_Map = {}
