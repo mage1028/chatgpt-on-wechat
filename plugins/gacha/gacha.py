@@ -55,8 +55,12 @@ class Gacha(Plugin):
             reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
             e_context['reply'] = reply
             e_context.action = EventAction.BREAK
+
+            reply2 = Reply()
+            reply2.type = ReplyType.TEXT
+            reply2.content = "666"
             new_context = copy.deepcopy(e_context)
-            new_context['reply'] = '666'
+            new_context['reply'] = reply2
             channel_factory.create_channel('wx').handle(new_context)
             return
 
@@ -66,10 +70,11 @@ class Gacha(Plugin):
             reply.type = ReplyType.TEXT
             reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
             if data['type'] == 'begin':
-                e_context[
-                    'reply'] = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
+                reply.content = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
             if data['type'] == 'end':
-                e_context['reply'] = f'xdy 下课了，下课时间: {data["end"]}'
+                reply.content = f'xdy 下课了，下课时间: {data["end"]}'
+
+            e_context['reply'] = reply
             e_context.action = EventAction.BREAK
             channel_factory.create_channel('wx').handle(e_context)
             return
@@ -82,7 +87,7 @@ class Gacha(Plugin):
             # 使用 CronTrigger 配置时间表（注意 hour 参数设置为 16，即 4 PM）
             trigger = CronTrigger(day_of_week='thu',
                                   hour=16,
-                                  minute=30,
+                                  minute=38,
                                   timezone='Asia/Singapore')
             # 添加任务
             scheduler.add_job(
