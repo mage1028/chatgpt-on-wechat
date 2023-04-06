@@ -10,6 +10,7 @@ from plugins import *
 import requests
 from channel import channel_factory
 import copy
+from typing import Dict
 
 
 @plugins.register(name="Gacha",
@@ -53,10 +54,39 @@ class Gacha(Plugin):
             reply.type = ReplyType.TEXT
             reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
             e_context['reply'] = reply
+            e_context['']
             e_context.action = EventAction.BREAK
             new_context = copy.deepcopy(e_context)
             new_context['666']
             channel_factory.create_channel('wx').handle(new_context)
+            return
+
+        def send_mention(data: Dict[str, str]):
+            reply = Reply()
+            reply.type = ReplyType.TEXT
+            reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
+            if data['type'] == 'begin':
+                e_context[
+                    'reply'] = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
+            if data['type'] == 'end':
+                e_context['reply'] = f'xdy 下课了，下课时间: {data["end"]}'
+            e_context.action = EventAction.BREAK
+            channel_factory.create_channel('wx').handle(e_context)
+            return
+
+        if clist[0] == "$class":
+            import schedule
+            schedule.every().thursday.at("14:30").do(send_mention, {
+                "type": "begin",
+                "begin": "14:30",
+                "end": "16:30"
+            })
+            reply = Reply()
+            reply.type = ReplyType.TEXT
+            reply.content = "开启上课提醒成功"
+            e_context['reply'] = reply
+            e_context['']
+            e_context.action = EventAction.BREAK
             return
 
         if clist[0] == "$clear":
