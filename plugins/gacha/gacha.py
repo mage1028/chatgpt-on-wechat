@@ -75,7 +75,7 @@ class Gacha(Plugin):
 
         if clist[0] == "$class":
             import schedule
-            schedule.every().thursday.at("15:45").do(send_mention, {
+            schedule.every().thursday.at("16:05").do(send_mention, {
                 "type": "begin",
                 "begin": "14:30",
                 "end": "16:30"
