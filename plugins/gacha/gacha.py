@@ -56,26 +56,18 @@ class Gacha(Plugin):
             e_context['reply'] = reply
             e_context.action = EventAction.BREAK
 
-            reply2 = Reply()
-            reply2.type = ReplyType.TEXT
-            reply2.content = "666"
-            new_context = copy.deepcopy(e_context)
-            new_context['reply'] = reply2
+            new_context = copy.deepcopy(e_context['context'])
+            new_context.content = '5555'
             channel_factory.create_channel('wx').handle(new_context)
             return
 
         def send_mention(data: Dict[str, str]):
             print('send_mention', data)
-            reply = Reply()
-            reply.type = ReplyType.TEXT
-            reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
+            new_context = copy.deepcopy(e_context['context'])
             if data['type'] == 'begin':
-                reply.content = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
+                new_context.content = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
             if data['type'] == 'end':
-                reply.content = f'xdy 下课了，下课时间: {data["end"]}'
-
-            e_context['reply'] = reply
-            e_context.action = EventAction.BREAK
+                new_context.content = f'xdy 下课了，下课时间: {data["end"]}'
             channel_factory.create_channel('wx').handle(e_context)
             return
 
