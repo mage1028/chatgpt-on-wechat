@@ -56,11 +56,12 @@ class Gacha(Plugin):
             e_context['reply'] = reply
             e_context.action = EventAction.BREAK
             new_context = copy.deepcopy(e_context)
-            new_context['666']
+            new_context['reply'] = '666'
             channel_factory.create_channel('wx').handle(new_context)
             return
 
         def send_mention(data: Dict[str, str]):
+            print('send_mention', data)
             reply = Reply()
             reply.type = ReplyType.TEXT
             reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
@@ -75,16 +76,27 @@ class Gacha(Plugin):
 
         if clist[0] == "$class":
             import schedule
-            schedule.every().thursday.at("16:05").do(send_mention, {
-                "type": "begin",
-                "begin": "14:30",
-                "end": "16:30"
-            })
+            from apscheduler.schedulers.background import BackgroundScheduler
+            from apscheduler.triggers.cron import CronTrigger
+            scheduler = BackgroundScheduler()
+            # 使用 CronTrigger 配置时间表（注意 hour 参数设置为 16，即 4 PM）
+            trigger = CronTrigger(day_of_week='thu',
+                                  hour=16,
+                                  minute=30,
+                                  timezone='Asia/Singapore')
+            # 添加任务
+            scheduler.add_job(
+                send_mention({
+                    "type": "begin",
+                    "begin": "14:30",
+                    "end": "16:30"
+                }), trigger)
+            schedule.start()
             reply = Reply()
             reply.type = ReplyType.TEXT
             reply.content = "开启上课提醒成功"
             e_context['reply'] = reply
-            e_context.action = EventAction.BREAK
+            e_context.action = EventAction.BREAK_PASS
             return
 
         if clist[0] == "$clear":

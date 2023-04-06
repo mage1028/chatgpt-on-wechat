@@ -15,3 +15,5 @@ chardet>=5.1.0
 SpeechRecognition
 tiktoken>=0.3.2
 schedule>=1.1.0
+pytz>=2021.1
+apscheduler>=3.7.0
