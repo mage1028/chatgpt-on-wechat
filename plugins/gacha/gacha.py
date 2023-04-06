@@ -79,7 +79,7 @@ class Gacha(Plugin):
             # 使用 CronTrigger 配置时间表（注意 hour 参数设置为 16，即 4 PM）
             trigger = CronTrigger(day_of_week='thu',
                                   hour=16,
-                                  minute=38,
+                                  minute=55,
                                   timezone='Asia/Singapore')
             # 添加任务
             scheduler.add_job(
