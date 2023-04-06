@@ -54,7 +54,6 @@ class Gacha(Plugin):
             reply.type = ReplyType.TEXT
             reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
             e_context['reply'] = reply
-            e_context['']
             e_context.action = EventAction.BREAK
             new_context = copy.deepcopy(e_context)
             new_context['666']
