@@ -81,7 +81,6 @@ class Gacha(Plugin):
             return
 
         if clist[0] == "$class":
-            import schedule
             from apscheduler.schedulers.background import BackgroundScheduler
             from apscheduler.triggers.cron import CronTrigger
             scheduler = BackgroundScheduler()
@@ -98,7 +97,7 @@ class Gacha(Plugin):
                                   "begin": "14:30",
                                   "end": "16:30"
                               }, ))
-            schedule.start()
+            scheduler.start()
             reply = Reply()
             reply.type = ReplyType.TEXT
             reply.content = "开启上课提醒成功"
