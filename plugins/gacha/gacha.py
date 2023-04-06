@@ -75,7 +75,7 @@ class Gacha(Plugin):
 
         if clist[0] == "$class":
             import schedule
-            schedule.every().thursday.at("14:30").do(send_mention, {
+            schedule.every().thursday.at("15:45").do(send_mention, {
                 "type": "begin",
                 "begin": "14:30",
                 "end": "16:30"
@@ -84,7 +84,6 @@ class Gacha(Plugin):
             reply.type = ReplyType.TEXT
             reply.content = "开启上课提醒成功"
             e_context['reply'] = reply
-            e_context['']
             e_context.action = EventAction.BREAK
             return
 
