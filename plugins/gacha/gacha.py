@@ -54,21 +54,30 @@ class Gacha(Plugin):
             reply.type = ReplyType.TEXT
             reply.content = "正在根据您的要求 生成旅游攻略 请稍后"
             e_context['reply'] = reply
-            e_context.action = EventAction.BREAK
+            e_context.action = EventAction.BREAK_PASS
 
             new_context = copy.deepcopy(e_context['context'])
             new_context.content = '5555'
-            channel_factory.create_channel('wx').handle(new_context)
+            reply2 = Reply()
+            reply2.type = ReplyType.TEXT
+            reply2.content = "66666"
+            channel_factory.create_channel('wx')._send_reply(
+                new_context, reply)
             return
 
         def send_mention(data: Dict[str, str]):
             print('send_mention', data)
+            reply2 = Reply()
+            reply2.type = ReplyType.TEXT
+            reply2.content = "66666"
             new_context = copy.deepcopy(e_context['context'])
             if data['type'] == 'begin':
-                new_context.content = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
+                reply2.content = f'xdy 开始上课，上课时间: {data["begin"]}, 下课时间: {data["end"]}'
             if data['type'] == 'end':
-                new_context.content = f'xdy 下课了，下课时间: {data["end"]}'
-            channel_factory.create_channel('wx').handle(e_context)
+                reply2.content = f'xdy 下课了，下课时间: {data["end"]}'
+
+            channel_factory.create_channel('wx')._send_reply(e_context,
+                                                             reply=reply2)
             return
 
         if clist[0] == "$class":
@@ -78,16 +87,17 @@ class Gacha(Plugin):
             scheduler = BackgroundScheduler()
             # 使用 CronTrigger 配置时间表（注意 hour 参数设置为 16，即 4 PM）
             trigger = CronTrigger(day_of_week='thu',
-                                  hour=16,
-                                  minute=55,
+                                  hour=17,
+                                  minute=50,
                                   timezone='Asia/Singapore')
             # 添加任务
-            scheduler.add_job(
-                send_mention({
-                    "type": "begin",
-                    "begin": "14:30",
-                    "end": "16:30"
-                }), trigger)
+            scheduler.add_job(send_mention,
+                              trigger,
+                              args={
+                                  "type": "begin",
+                                  "begin": "14:30",
+                                  "end": "16:30"
+                              })
             schedule.start()
             reply = Reply()
             reply.type = ReplyType.TEXT
